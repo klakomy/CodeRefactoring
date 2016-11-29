@@ -4,6 +4,7 @@
 
 #include "SnakePosition.hpp"
 #include "SnakeDimension.hpp"
+#include "IWorld.hpp"
 
 class IPort;
 
@@ -11,7 +12,7 @@ namespace Snake
 {
 class Segments;
 
-class World
+class World : public IWorld
 {
 public:
     World(IPort& displayPort, IPort& foodPort, Dimension dimension, Position food);
@@ -33,6 +34,10 @@ private:
     void sendPlaceNewFood(Position position);
     void sendClearOldFood();
     void updateFoodPositionWithCleanPolicy(Position position, Segments const& segments, std::function<void()> clearPolicy);
+
+    // IWorld interface
+public:
+    Position correctPosition(Position position) const;
 };
 
 } // namespace Snake

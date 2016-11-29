@@ -81,9 +81,9 @@ void Segments::updateDirection(Direction newDirection)
     }
 }
 
-void Segments::nextStep(const World &world)
+void Segments::nextStep(const IWorld &world)
 {
-    updateSegments(nextHead(), world);
+    updateSegments(world.correctPosition(nextHead()), world);
 }
 
 void Segments::removeTailSegment()
@@ -106,7 +106,7 @@ void Segments::addHeadSegment(Position position)
     m_displayPort.send(std::make_unique<EventT<DisplayInd>>(placeNewHead));
 }
 
-void Segments::removeTailSegmentIfNotScored(Position position, const World &world)
+void Segments::removeTailSegmentIfNotScored(Position position, const IWorld &world)
 {
     if (world.eatFood(position)) {
         ScoreInd l_ind{};
@@ -117,7 +117,7 @@ void Segments::removeTailSegmentIfNotScored(Position position, const World &worl
     }
 }
 
-void Segments::updateSegments(Position position, const World &world)
+void Segments::updateSegments(Position position, const IWorld &world)
 {
     if (isCollision(position) or not world.contains(position)) {
         m_scorePort.send(std::make_unique<EventT<LooseInd>>());
