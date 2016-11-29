@@ -65,6 +65,7 @@ Controller::Controller(IPort& p_displayPort, IPort& p_foodPort, IPort& p_scorePo
 
 void Controller::handleTimePassed(const TimeoutInd&)
 {
+    if(isPaused) return;
     Segment newHead = getNewHead();
 
     if(doesCollideWithSnake(newHead))
@@ -99,6 +100,7 @@ void Controller::handleTimePassed(const TimeoutInd&)
 
 void Controller::handleDirectionChange(const DirectionInd& directionInd)
 {
+    if(isPaused) return;
     auto direction = directionInd.direction;
 
     if ((m_currentDirection & 0b01) != (direction & 0b01)) {
@@ -108,7 +110,9 @@ void Controller::handleDirectionChange(const DirectionInd& directionInd)
 
 void Controller::handleFoodPositionChange(const FoodInd& receivedFood)
 {
+
     bool requestedFoodCollidedWithSnake = false;
+
     for (auto const& segment : m_segments) {
         if (segment.x == receivedFood.x and segment.y == receivedFood.y) {
             requestedFoodCollidedWithSnake = true;
@@ -129,6 +133,7 @@ void Controller::handleFoodPositionChange(const FoodInd& receivedFood)
 
 void Controller::handleNewFood(const FoodResp& requestedFood)
 {
+    //if(isPaused) return;
     bool requestedFoodCollidedWithSnake = false;
     for (auto const& segment : m_segments) {
         if (segment.x == requestedFood.x and segment.y == requestedFood.y) {
@@ -152,6 +157,7 @@ void Controller::handleNewFood(const FoodResp& requestedFood)
 
 bool Controller::doesCollideWithSnake(const Controller::Segment &newSegment) const
 {
+
     for (auto segment : m_segments) {
         if (segment.x == newSegment.x and segment.y == newSegment.y) {
             return true;
@@ -213,6 +219,18 @@ Controller::Segment Controller::getNewHead() const
     return newHead;
 }
 
+void Controller::handlePausing(const PauseInd& pauseRequest)
+{
+    if(isPaused==false)
+    {
+        isPaused=true;
+    }
+    else if(isPaused == true)
+    {
+        isPaused=false;
+    }
+}
+
 void Controller::receive(std::unique_ptr<Event> e)
 {
     switch(e->getMessageId())
@@ -221,6 +239,7 @@ void Controller::receive(std::unique_ptr<Event> e)
         case DirectionInd::MESSAGE_ID: return handleDirectionChange(*static_cast<EventT<DirectionInd> const&>(*e));
         case FoodInd::MESSAGE_ID: return handleFoodPositionChange(*static_cast<EventT<FoodInd> const&>(*e));
         case FoodResp::MESSAGE_ID: return handleNewFood(*static_cast<EventT<FoodResp> const&>(*e));
+        case PauseInd::MESSAGE_ID: return handlePausing(*static_cast<EventT<PauseInd> const&>(*e));
         default: throw UnexpectedEventException();
     };
 }
