@@ -34,20 +34,20 @@ Controller::Controller(IPort& p_displayPort, IPort& p_foodPort, IPort& p_scorePo
 
         istr >> d;
         switch (d) {
-            case 'U':
-                m_currentDirection = Direction_UP;
-                break;
-            case 'D':
-                m_currentDirection = Direction_DOWN;
-                break;
-            case 'L':
-                m_currentDirection = Direction_LEFT;
-                break;
-            case 'R':
-                m_currentDirection = Direction_RIGHT;
-                break;
-            default:
-                throw ConfigurationError();
+        case 'U':
+            m_currentDirection = Direction_UP;
+            break;
+        case 'D':
+            m_currentDirection = Direction_DOWN;
+            break;
+        case 'L':
+            m_currentDirection = Direction_LEFT;
+            break;
+        case 'R':
+            m_currentDirection = Direction_RIGHT;
+            break;
+        default:
+            throw ConfigurationError();
         }
         istr >> length;
 
@@ -163,8 +163,8 @@ bool Controller::doesCollideWithSnake(const Controller::Segment &newSegment) con
 bool Controller::doesCollideWithWall(const Controller::Segment &newSegment) const
 {
     return newSegment.x < 0 or newSegment.y < 0 or
-           newSegment.x >= m_mapDimension.first or
-           newSegment.y >= m_mapDimension.second;
+            newSegment.x >= m_mapDimension.first or
+            newSegment.y >= m_mapDimension.second;
 }
 
 bool Controller::doesCollideWithFood(const Controller::Segment &newHead) const
@@ -194,11 +194,11 @@ void Controller::repaintTile(unsigned int x, unsigned int y, Cell type)
 void Controller::cleanNotExistingSnakeSegments()
 {
     m_segments.erase(
-         std::remove_if(
-             m_segments.begin(),
-             m_segments.end(),
-             [](auto const& segment){ return not (segment.ttl > 0); }),
-         m_segments.end());
+                std::remove_if(
+                    m_segments.begin(),
+                    m_segments.end(),
+                    [](auto const& segment){ return not (segment.ttl > 0); }),
+                m_segments.end());
 }
 
 Controller::Segment Controller::getNewHead() const
@@ -215,22 +215,27 @@ Controller::Segment Controller::getNewHead() const
 
 void Controller::receive(std::unique_ptr<Event> e)
 {
-    try {
-        handleTimePassed(*dynamic_cast<EventT<TimeoutInd> const&>(*e));
-    } catch (std::bad_cast&) {
-        try {
-            handleDirectionChange(*dynamic_cast<EventT<DirectionInd> const&>(*e));
-        } catch (std::bad_cast&) {
-            try {
-                handleFoodPositionChange(*dynamic_cast<EventT<FoodInd> const&>(*e));
-            } catch (std::bad_cast&) {
-                try {
-                    handleNewFood(*dynamic_cast<EventT<FoodResp> const&>(*e));
-                } catch (std::bad_cast&) {
-                    throw UnexpectedEventException();
-                }
-            }
-        }
+    std::uint32_t messageId = e->getMessageId();
+    switch(messageId)
+    {
+    case 0x20:
+        handleTimePassed(payload<TimeoutInd>(*e));
+        break;
+
+    case 0x10:
+        handleDirectionChange(payload<DirectionInd>(*e));
+        break;
+
+    case 0x40:
+        handleFoodPositionChange(payload<FoodInd>(*e));
+        break;
+
+    case 0x42:
+        handleNewFood(payload<FoodResp>(*e));
+        break;
+
+    default:
+        throw UnexpectedEventException();
     }
 }
 
