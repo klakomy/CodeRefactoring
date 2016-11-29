@@ -28,8 +28,11 @@ public:
 
     Controller(Controller const& p_rhs) = delete;
     Controller& operator=(Controller const& p_rhs) = delete;
-
-    void receive(std::unique_ptr<Event> e) override;
+    void timerEvent(std::shared_ptr<Event> e);
+    void receiveFoodEvent(std::shared_ptr<Event> e);
+    void requestFoodEvent(std::shared_ptr<Event> e);
+    void directionEvent(std::shared_ptr<Event> e);
+    void receive(std::shared_ptr<Event> e) override;
 
 private:
     struct Segment

@@ -8,5 +8,5 @@ class IEventHandler
 {
 public:
     virtual ~IEventHandler() = default;
-    virtual void receive(std::unique_ptr<Event>) = 0;
+    virtual void receive(std::shared_ptr<Event>) = 0;
 };
